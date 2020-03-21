@@ -1,0 +1,47 @@
+python --version
+
+# example response: Python 2.7.13
+# if version is 2.7.13, then:
+
+nano ~/.bashrc
+
+# add (uncommented) to the end of the file (insert at least one newline first):
+#alias python='/usr/bin/python3'
+
+sudo apt-get install python3-smbus
+
+#do we need pip if we're using smbus and installing via apt-get anyway? Let's assume not.
+pip3
+
+# if response is : -bash: pip3: command not found
+# note that the apt-get update is likely REQUIRED
+sudo apt-get update
+sudo apt-get install python3-pip
+
+# are these necesarry?
+#sudo apt-get install build-essential python-dev
+
+pip3 install RPI.GPIO
+
+# let's install Pillow for imaging, because PIL is not maintained and apparently not fun!
+python -m pip install Pillow
+
+# Set the i2c core to run at 1MHz:
+sudo nano /boot/config.txt
+
+# add (uncommented) to the end of the file (insert at least one newline first):
+#dtparam=i2c_baudrate=1000000
+
+# i2c busses must be added in order of highest to lowest apparently
+
+# i2c bus 5: note pins are SDA = GPIO 18, SCL = GPIO 22
+#dtoverlay=i2c-gpio,bus=5,i2c_gpio_delay_us=1,i2c_gpio_sda=18,i2c_gpio_scl=22
+
+# i2c bus 4: note pins are SDA = GPIO 23, SCL = GPIO 24
+#dtoverlay=i2c-gpio,bus=4,i2c_gpio_delay_us=1,i2c_gpio_sda=23,i2c_gpio_scl=24
+
+# i2c bus 3: note pins are SDA = GPIO 17, SCL = GPIO 27
+#dtoverlay=i2c-gpio,bus=3,i2c_gpio_delay_us=1,i2c_gpio_sda=17,i2c_gpio_scl=27
+
+# Let's use the Adafruit CircuitPython SSD1306 library!
+pip3 install adafruit-circuitpython-ssd1306
