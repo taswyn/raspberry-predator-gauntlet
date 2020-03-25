@@ -50,7 +50,7 @@ busDictionary = {
 4 : { 'SDA': D23, 'SCL': D24 },
 5 : { 'SDA': D18, 'SCL': D22 }
 }
-busNumbers = [1, 3]
+busNumbers = [1, 3, 4, 5]
 
 
 busList = [busio.I2C(busDictionary[x]['SCL'], busDictionary[x]['SDA']) for x in busNumbers]

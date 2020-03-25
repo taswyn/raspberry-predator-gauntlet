@@ -45,3 +45,9 @@ sudo nano /boot/config.txt
 
 # Let's use the Adafruit CircuitPython SSD1306 library!
 pip3 install adafruit-circuitpython-ssd1306
+
+# at some point reboot
+sudo shutdown -r now
+
+# check setup
+sudo i2cdetect -l
