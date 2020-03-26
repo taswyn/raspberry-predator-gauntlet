@@ -112,7 +112,6 @@ totalAdvances = 0
 sequenceNow = 0
 delayInterval = 2
 
-"""
 while (totalAdvances / 9) < 1 :
     for i, display in enumerate(displayList):
         runCountdown(display, i, sequenceNow)
@@ -121,6 +120,6 @@ while (totalAdvances / 9) < 1 :
     # note that for running indefinitely, we'll need a way to zero totalAdvances to prevent overflow (hence not a for loop)
     time.sleep(delayInterval)
     pass
-"""
+
 runExplosion(displayList)
 
