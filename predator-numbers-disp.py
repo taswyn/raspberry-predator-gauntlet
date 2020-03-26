@@ -114,6 +114,13 @@ def runExplosion(oledDisplays) :
             time.sleep(.05)
         time.sleep(1)
 
+def runClock(oledDisplays) :
+    # run the clock process
+    return
+
+def killClock() : 
+    # check for the clock process, kill it
+    return
 
 busDictionary = { 
 1 : { 'SDA': pins.SDA, 'SCL': pins.SCL }, 
@@ -149,3 +156,4 @@ runExplosion(displayList)
 
 time.sleep(10)
 
+runClock(displayList)
