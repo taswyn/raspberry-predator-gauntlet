@@ -44,7 +44,7 @@ def runCountdown(oledDisplay, displayNumber, sequenceStep) :
 
         oledDisplay.image(twoBitImage)
     else :
-        # blank the corresponding display 
+        # blank the corresponding display if past screen's sequence limit
         oledDisplay.fill(0)
 
     oledDisplay.show()
@@ -57,6 +57,8 @@ def runExplosion(oledDisplays) :
 
     drawObjects = [ImageDraw.Draw(oledImage) for oledImage in oledImages]
 
+    # this starts to get a little less than perfectly performant
+    # consider using sprites/etc, or creating some random ones and then re-drawing with those
     for i in range(1, 15, 2) :
         for displayIndex, oledDisplay in enumerate(oledDisplays) :
             plotPoints = []
@@ -86,12 +88,14 @@ def runExplosion(oledDisplays) :
         drawObjects[displayIndex].text((center[0] + center[0] / 2 - textWidth / 2, center[1] - textHeight / 2), textLine1[displayIndex], font=fontObject, fill=0)
         oledDisplay.image(oledImages[displayIndex])
         oledDisplay.show()
+        time.sleep(.05)
 
     for displayIndex, oledDisplay in enumerate(oledDisplays) :
         (textWidth, textHeight) = fontObject.getsize(textLine2[displayIndex])
         drawObjects[displayIndex].text((center[0] / 2 - textWidth / 2, center[1] - textHeight / 2), textLine2[displayIndex], font=fontObject, fill=0)
         oledDisplay.image(oledImages[displayIndex])
         oledDisplay.show()
+        time.sleep(.05)
 
 
 busDictionary = { 
@@ -100,8 +104,11 @@ busDictionary = {
 4 : { 'SDA': pins.D23, 'SCL': pins.D24 },
 5 : { 'SDA': pins.D18, 'SCL': pins.D22 }
 }
+
+# can enumerate less than the total defined buses in busNumbers if desired
 busNumbers = [1, 3, 4, 5]
 
+# this is the highest count of drawn bitmaps for each screen
 sequenceLast = [8, 6, 5, 3]
 
 busList = [busio.I2C(busDictionary[x]['SCL'], busDictionary[x]['SDA']) for x in busNumbers]
