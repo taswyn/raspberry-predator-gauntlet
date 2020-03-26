@@ -24,7 +24,7 @@ adafruit_blinka.microcontroller.bcm283x.pin.i2cPorts = (
     (5, pins.D22, pins.D18), (4, pins.D24, pins.D23), (3, pins.D27, pins.D17), (1, pins.SCL, pins.SDA), (0, pins.D1, pins.D0),   
 )
 
-
+screenOrientation = Image.ROTATE_270
 
 def displayInit(oledDisplay):
     oledDisplay.fill(0)
@@ -39,7 +39,7 @@ def runCountdown(oledDisplay, displayNumber, sequenceStep) :
 
         initialImage = Image.open(imageFile)
         # we need to rotate these -90 degrees and make sure they're single bit
-        rotatedImage = initialImage.transpose(Image.ROTATE_270)
+        rotatedImage = initialImage.transpose(screenOrientation)
         twoBitImage = rotatedImage.convert("1")
 
         oledDisplay.image(twoBitImage)
@@ -51,7 +51,7 @@ def runCountdown(oledDisplay, displayNumber, sequenceStep) :
     return
 
 def runExplosion(oledDisplays) :
-    center = [63,31]
+    center = [math.floor(oledDisplays[0].width / 2), math.floor(oledDisplays[0].height / 2)]
 
     oledImages = [Image.new('1', (oledDisplay.width, oledDisplay.height)) for oledDisplay in oledDisplays]
 
@@ -60,15 +60,38 @@ def runExplosion(oledDisplays) :
     for i in range(1, 15, 2) :
         for displayIndex, oledDisplay in enumerate(oledDisplays) :
             plotPoints = []
-            for randomi in range (0, 30 * i * math.floor(i/2)) :
+            for randomi in range (0, 30 * i * math.floor(i/1.5)) :
                 x = random.randrange(-6*i, 6*i) + center[0]
                 y = random.randrange(math.floor(-5*i), math.floor(5*i)) + center[1]
                 plotPoints.append((x,y)) 
             
-            drawObjects[displayIndex].point(plotPoints, fill=255)
+            drawObjects[displayIndex].point(plotPoints, fill=1)
 
             oledDisplay.image(oledImages[displayIndex])
             oledDisplay.show()
+            
+        # not an issue on Pi3B, but this should help keep timing consistent on faster systems
+        time.sleep(.05)
+    
+    textLine1 = "GAME"
+    textLine2 = "OVER"
+
+    basicFont = ImageFont.truetype(font="/usr/share/fonts/truetype/dejavu/DejaVuSansMono-Bold.ttf", size=60)
+
+    # have to rotate the letters to fit the screen orientation!
+    fontObject = ImageFont.TransposedFont(basicFont, orientation = screenOrientation)
+
+    for displayIndex, oledDisplay in enumerate(oledDisplays) :
+        (textWidth, textHeight) = fontObject.getsize(textLine1[displayIndex])
+        drawObjects[displayIndex].text((center[0] + center[0] / 2 - textWidth / 2, center[1] - textHeight / 2), textLine1[displayIndex], font=fontObject, fill=0)
+        oledDisplay.image(oledImages[displayIndex])
+        oledDisplay.show()
+
+    for displayIndex, oledDisplay in enumerate(oledDisplays) :
+        (textWidth, textHeight) = fontObject.getsize(textLine2[displayIndex])
+        drawObjects[displayIndex].text((center[0] / 2 - textWidth / 2, center[1] - textHeight / 2), textLine2[displayIndex], font=fontObject, fill=0)
+        oledDisplay.image(oledImages[displayIndex])
+        oledDisplay.show()
 
 
 busDictionary = { 
@@ -89,7 +112,8 @@ totalAdvances = 0
 sequenceNow = 0
 delayInterval = 2
 
-while totalAdvances < 10 :
+"""
+while (totalAdvances / 9) < 1 :
     for i, display in enumerate(displayList):
         runCountdown(display, i, sequenceNow)
     totalAdvances += 1
@@ -97,6 +121,6 @@ while totalAdvances < 10 :
     # note that for running indefinitely, we'll need a way to zero totalAdvances to prevent overflow (hence not a for loop)
     time.sleep(delayInterval)
     pass
-
+"""
 runExplosion(displayList)
 
