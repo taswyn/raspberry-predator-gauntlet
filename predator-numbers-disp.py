@@ -3,6 +3,8 @@ Requires the CircuitPython library: adafruit-circuitpython-ssd1306 module
 Requires Pillow (Python Imaging Library fork)
 """
 
+import time
+
 import board
 import digitalio
 from PIL import Image, ImageDraw, ImageFont
@@ -25,17 +27,24 @@ def displayInit(oledDisplay):
     oledDisplay.show()
     return
 
-def runDisplay(oledDisplay, displayNumber):
+def runCountdown(oledDisplay, displayNumber, sequenceStep):
     #oledDisplay.fill(0)
     #oledDisplay.show()
 
-    imageFile = 'predator' + str(displayNumber) + '.bmp'
+    if sequenceLast[displayNumber] < sequenceStep :
 
-    initialImage = Image.open(imageFile)
+        imageFile = 'images/pred' + str(sequenceStep + 1) + '-' + str(displayNumber + 1) + '.bmp'
 
-    twoBitImage = initialImage.convert("1")
+        initialImage = Image.open(imageFile)
+        # we need to rotate these -90 degrees and make sure they're single bit
+        rotatedImage = initialImage.transpose(Image.ROTATE_270)
+        twoBitImage = rotatedImage.convert("1")
 
-    oledDisplay.image(twoBitImage)
+        oledDisplay.image(twoBitImage)
+    else :
+        # blank the corresponding display 
+        oledDisplay.fill(0)
+
     oledDisplay.show()
     return
 
@@ -47,11 +56,22 @@ busDictionary = {
 }
 busNumbers = [1, 3, 4, 5]
 
+sequenceLast = [8, 6, 5, 3]
 
 busList = [busio.I2C(busDictionary[x]['SCL'], busDictionary[x]['SDA']) for x in busNumbers]
 
-
 displayList = [adafruit_ssd1306.SSD1306_I2C(128, 64, x, addr=0x3c) for x in busList]
 
-for i, display in enumerate(displayList):
-    runDisplay(display, 1)
+totalAdvances = 0
+sequenceNow = 0
+delayInterval = 2
+
+while totalAdvances < 10 :
+    for i, display in enumerate(displayList):
+        runCountdown(display, i, sequenceNow)
+    totalAdvances += 1
+    sequenceNow = totalAdvances % 9
+    # note that for running indefinitely, we'll need a way to zero totalAdvances to prevent overflow (hence not a for loop)
+    time.sleep(delayInterval)
+    pass
+
