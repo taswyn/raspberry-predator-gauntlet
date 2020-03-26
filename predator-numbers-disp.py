@@ -74,7 +74,7 @@ def runExplosion(oledDisplays) :
             
         # not an issue on Pi3B, but this should help keep timing consistent on faster systems
         time.sleep(.05)
-    
+    """    
     textLine1 = "GAME"
     textLine2 = "OVER"
 
@@ -96,6 +96,23 @@ def runExplosion(oledDisplays) :
         oledDisplay.image(oledImages[displayIndex])
         oledDisplay.show()
         time.sleep(.05)
+    """
+    
+    textLines = ["MAKE", "YOUR", "TIME"]
+
+    basicFont = ImageFont.truetype(font="/usr/share/fonts/truetype/dejavu/DejaVuSansMono-Bold.ttf", size=40)
+
+    # have to rotate the letters to fit the screen orientation!
+    fontObject = ImageFont.TransposedFont(basicFont, orientation = screenOrientation)
+
+    for i, textLine in enumerate(textLines) : 
+        for displayIndex, oledDisplay in enumerate(oledDisplays) :
+            (textWidth, textHeight) = fontObject.getsize(textLine[displayIndex])
+            drawObjects[displayIndex].text((center[0] + (oledDisplay.width / 3) * (1-i) - textWidth / 2, center[1] - textHeight / 2), textLine[displayIndex], font=fontObject, fill=0)
+            oledDisplay.image(oledImages[displayIndex])
+            oledDisplay.show()
+            time.sleep(.05)
+        time.sleep(1)
 
 
 busDictionary = { 
@@ -129,4 +146,6 @@ while (totalAdvances / 9) < 1 :
     pass
 
 runExplosion(displayList)
+
+time.sleep(10)
 
