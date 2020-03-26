@@ -13,13 +13,13 @@ import adafruit_ssd1306
 import busio
 
 # We need this for the pins, right now we're cheating and hard calling it.
-from adafruit_blinka.board.raspberrypi.raspi_40pin import *
+import adafruit_blinka.board.raspberrypi.raspi_40pin as pins
 
 # There are hard coded valid I2C pins sigh.
 # busyio checks these before setting up an I2C, so they must be present for all busses.
 import adafruit_blinka.microcontroller.bcm283x.pin
 adafruit_blinka.microcontroller.bcm283x.pin.i2cPorts = (
-    (5, D22, D18), (4, D24, D23), (3, D27, D17), (1, SCL, SDA), (0, D1, D0),   
+    (5, pins.D22, pins.D18), (4, pins.D24, pins.D23), (3, pins.D27, pins.D17), (1, pins.SCL, pins.SDA), (0, pins.D1, pins.D0),   
 )
 
 def runDisplay(oledDisplay, displayNumber):
@@ -45,10 +45,10 @@ def runDisplay(oledDisplay, displayNumber):
     return
 
 busDictionary = { 
-1 : { 'SDA': SDA, 'SCL': SCL }, 
-3 : { 'SDA': D17, 'SCL': D27 },
-4 : { 'SDA': D23, 'SCL': D24 },
-5 : { 'SDA': D18, 'SCL': D22 }
+1 : { 'SDA': pins.SDA, 'SCL': pins.SCL }, 
+3 : { 'SDA': pins.D17, 'SCL': pins.D27 },
+4 : { 'SDA': pins.D23, 'SCL': pins.D24 },
+5 : { 'SDA': pins.D18, 'SCL': pins.D22 }
 }
 busNumbers = [1, 3, 4, 5]
 
