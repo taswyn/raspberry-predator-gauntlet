@@ -28,8 +28,6 @@ def displayInit(oledDisplay):
     return
 
 def runCountdown(oledDisplay, displayNumber, sequenceStep):
-    #oledDisplay.fill(0)
-    #oledDisplay.show()
 
     if sequenceStep < sequenceLast[displayNumber] :
 
