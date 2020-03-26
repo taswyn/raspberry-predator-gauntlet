@@ -31,7 +31,7 @@ def runCountdown(oledDisplay, displayNumber, sequenceStep):
     #oledDisplay.fill(0)
     #oledDisplay.show()
 
-    if sequenceLast[displayNumber] < sequenceStep :
+    if sequenceStep < sequenceLast[displayNumber] :
 
         imageFile = 'images/pred' + str(sequenceStep + 1) + '-' + str(displayNumber + 1) + '.bmp'
 
