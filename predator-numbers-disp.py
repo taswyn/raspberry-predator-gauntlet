@@ -116,6 +116,24 @@ def runExplosion(oledDisplays) :
 
 def runClock(oledDisplays) :
     # run the clock process
+    # initialize displays
+    for oledDisplay in oledDisplays :
+        oledDisplay.fill(0)
+        oledDisplay.show()
+
+    while True : 
+        for oledDisplay in oledDisplays :
+            if random.randrange(0,15) > 11 :
+                imageFile = 'images/pred-hex-' + '{:X}'.format(random.randrange(0, 15)) + '.bmp'
+
+                initialImage = Image.open(imageFile)
+                # we need to rotate these -90 degrees and make sure they're single bit
+                rotatedImage = initialImage.transpose(screenOrientation)
+                twoBitImage = rotatedImage.convert("1")
+
+                oledDisplay.image(twoBitImage)
+                oledDisplay.show()
+        time.sleep(1)
     return
 
 def killClock() : 
