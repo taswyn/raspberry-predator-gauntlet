@@ -114,12 +114,14 @@ def runExplosion(oledDisplays) :
             time.sleep(.05)
         time.sleep(1)
 
-def runClock(oledDisplays) :
-    # run the clock process
+def clearDisplays(oledDisplays) :
     # initialize displays
     for oledDisplay in oledDisplays :
         oledDisplay.fill(0)
         oledDisplay.show()
+
+def runClock(oledDisplays) :
+    # run the clock process
 
     while True : 
         for oledDisplay in oledDisplays :
@@ -174,4 +176,5 @@ runExplosion(displayList)
 
 time.sleep(10)
 
+clearDisplays(displayList)
 runClock(displayList)
