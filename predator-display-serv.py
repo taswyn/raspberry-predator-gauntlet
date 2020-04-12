@@ -108,6 +108,8 @@ def displayMain(processQueue):
             processMessage = processQueue.get() # blocking! (waits for a command to start up again)
             displayMode = processMessage
 
+    clearDisplays(displayList)
+
 # primary process core loop (central communication dispatcher)
 if __name__=='__main__':
     # set up the communications queue
