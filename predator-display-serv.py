@@ -7,6 +7,8 @@ import time
 import random
 import math
 
+import queue # for error handling of queue.Empty
+
 from multiprocessing import Process, Queue
 from multiprocessing.connection import Listener
 from array import array
@@ -83,21 +85,28 @@ def displayMain(processQueue):
   
     clearDisplays(displayList)
     displayMode = 'clock'
+    timeInterval = 0
 
     while displayMode != 'finish' :
-        
-        while displayMode == 'clock' :
-            time.sleep(1) # we should instead divide this up to keep checking messages
 
-            clockInterval(displayList)
+        # central queue dispatch and timer
+        time.sleep(0.1)
+        timeInterval += 1 # safe to keep accumulating this past 10 when outside of clock mode
+        try :
             processMessage = processQueue.get(False) # non blocking
             displayMode = processMessage
+            
+        except queue.Empty : 
+            pass # need to catch this but nothing to do
+        
+        if displayMode == 'clock' and timeInterval > 9 :
+            clockInterval(displayList)
+            timeInterval = 0
 
         if displayMode == 'clear' :
             clearDisplays(displayList)
             processMessage = processQueue.get() # blocking! (waits for a command to start up again)
             displayMode = processMessage
-
 
 # primary process core loop (central communication dispatcher)
 if __name__=='__main__':
@@ -110,14 +119,18 @@ if __name__=='__main__':
     # start the primary loop that will listen for incoming commands and pass them to queue
     # note that THIS loop is BLOCKING
     with Listener(addressT) as server : 
-        command = 'run'
+        command = 'clock'
         while command != 'finish' :
+            # message processing here
+            interProcessQueue.put(command) # this takes care of sending an initial message if needed
+            
             with server.accept() as connection : 
                 print('message received from', server.last_accepted)
                 message = connection.recv()
                 print(message)
                 command = message[0]
-            time.sleep(10)
+                
+        interProcessQueue.put(command) # send the finish command, can process first if necessary
 
 # should we run the display from here directly?
 # or should we create a lock and spawn a child process

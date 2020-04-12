@@ -8,13 +8,13 @@ addressT = ('localhost', 8333)
 
 # if server is not running: ConnectionRefusedError: [Errno 111] Connection refused
 with Client(addressT) as connection :
-    connection.send(['test', None, 1])
+    connection.send(['clear', None, 1])
 
 # what if the server stalls out?
 time.sleep(2)
 
 with Client(addressT) as connection :
-    connection.send(['test', None, 1])
+    connection.send(['clock', None, 1])
 
 time.sleep(11)
 
