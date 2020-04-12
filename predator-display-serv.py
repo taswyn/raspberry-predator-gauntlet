@@ -90,7 +90,7 @@ def displayMain(processQueue):
     while displayMode != 'finish' :
 
         # central queue dispatch and timer
-        time.sleep(0.1)
+        time.sleep(0.1) # 1/10th of a second time slicing, in theory?
         timeInterval += 1 # safe to keep accumulating this past 10 when outside of clock mode
         try :
             processMessage = processQueue.get(False) # non blocking
@@ -98,6 +98,8 @@ def displayMain(processQueue):
             
         except queue.Empty : 
             pass # need to catch this but nothing to do
+
+        # main dispatches based on mode
         
         if displayMode == 'clock' and timeInterval > 9 :
             clockInterval(displayList)
@@ -105,10 +107,10 @@ def displayMain(processQueue):
 
         if displayMode == 'clear' :
             clearDisplays(displayList)
-            processMessage = processQueue.get() # blocking! (waits for a command to start up again)
+            processMessage = processQueue.get() # blocking! (waits for new command to start up again, prevents repeatedly calling clear)
             displayMode = processMessage
 
-    clearDisplays(displayList)
+    clearDisplays(displayList) # display cleanup after dispatch loop
 
 # primary process core loop (central communication dispatcher)
 if __name__=='__main__':
