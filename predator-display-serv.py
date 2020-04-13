@@ -81,8 +81,13 @@ def runCountdown(oledDisplay, displayNumber, sequenceStep, sequenceLast) :
     oledDisplay.show()
     return
 
-def runExplosion(oledDisplays, textLines) :
+def runExplosion(oledDisplays, textLineGroup) :
     # note that each entry in textLines MUST have 4 characters TODO sanitize that
+    print(len(textLineGroup))
+    if len(textLineGroup) < 2 : 
+        textLines = textLineGroup[0] # otherwise randrange fails with 0,0
+    else :
+        textLines = textLineGroup[random.randrange(0,len(textLineGroup) -1)]
 
     center = [math.floor(oledDisplays[0].width / 2), math.floor(oledDisplays[0].height / 2)]
 
@@ -108,13 +113,20 @@ def runExplosion(oledDisplays, textLines) :
         # not an issue on Pi3B, but this should help keep timing consistent on faster systems
         time.sleep(.05)
 
-    fontSize = 100 - (len(textLines) * 20) # dynamically calculate based on number of rows
+    if len(textLines) > 3 :
+        for displayIndex, oledDisplay in enumerate(oledDisplays) :
+            drawObjects[displayIndex].rectangle([(0,0),(oledDisplay.width, oledDisplay.height)], 1, 1)
+            oledDisplay.image(oledImages[displayIndex])
+            oledDisplay.show()
+        time.sleep(.5)
+
+    fontSize = 95 - (len(textLines) * 15) # dynamically calculate based on number of rows
     basicFont = ImageFont.truetype(font="/usr/share/fonts/truetype/dejavu/DejaVuSansMono-Bold.ttf", size=fontSize)
 
     # have to rotate the letters to fit the screen orientation!
     fontObject = ImageFont.TransposedFont(basicFont, orientation = screenOrientation)
 
-    # for now, don't call this with more than 3 lines of text
+    # Might not be legible with more than 4 lines of text
     for i, textLine in enumerate(textLines) : 
         for displayIndex, oledDisplay in enumerate(oledDisplays) :
             (textWidth, textHeight) = fontObject.getsize(textLine[displayIndex])
@@ -187,21 +199,21 @@ def displayMain(processQueue):
             displayMode = processMessage
 
         if displayMode == 'systemStart' :
-            textLines = ["GAME", " ON "]
+            textLineGroup = [["GAME", " ON "], ["!!!!", "FIGHT", "!!!!"]]
             displayMode = 'countdownPrimed'
 
         if displayMode == 'gameStart' :
-            textLines = ["MAKE", "YOUR", "TIME"]
+            textLineGroup = [["MAKE", "YOUR", "TIME"], ["GET ", "OVER", "HERE"], ["YOU ", " WILL", "PAY "]]
             displayMode = 'countdownPrimed'
 
         if displayMode == 'gameEnd' :
-            textLines = ["GAME", "OVER"]
+            textLineGroup = [["GAME", "OVER"], ["YOUR", "SOUL", " IS ", "MINE"], ["WITH", "YOUR", "LIFE"]] 
             displayMode = 'countdownPrimed'
             
         if displayMode == 'countdownPrimed' :
             clearDisplays(displayList)
             countDownLoop(displayList, sequenceLast)
-            runExplosion(displayList, textLines)
+            runExplosion(displayList, textLineGroup)
             timeInterval = 0
             displayMode = 'waitForClock' # leave the display showing for a bit!
 
@@ -226,6 +238,14 @@ if __name__=='__main__':
     with Listener(addressT) as server : 
         command = 'clock'
         while command != 'finish' :
+            # check that the child process still lives
+            displayProcess.join(timeout=0)
+            if not displayProcess.is_alive() :
+                # not sure if this will work without having to kill the queue first
+                displayProcess = Process(target=displayMain, args=((interProcessQueue),))
+                displayProcess.daemon = True
+                displayProcess.start()
+            
             # message processing here
             interProcessQueue.put(command) # this takes care of sending an initial message if needed
             
