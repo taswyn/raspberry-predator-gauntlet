@@ -175,6 +175,12 @@ def displayMain(processQueue):
     displayMode = 'clock'
     timeInterval = 0
 
+    displayTexts = {
+        'systemStart' : [["GAME", " ON "], ["!!!!", "FIGHT", "!!!!"]],
+        'gameStart' : [["MAKE", "YOUR", "TIME"], ["GET ", "OVER", "HERE"], ["YOU ", " WILL", "PAY "]],
+        'gameEnd' : [["GAME", "OVER"], ["YOUR", "SOUL", " IS ", "MINE"], ["WITH", "YOUR", "LIFE"]]
+    }
+
     while displayMode != 'finish' :
 
         # central queue dispatch and timer
@@ -197,23 +203,11 @@ def displayMain(processQueue):
             clearDisplays(displayList)
             processMessage = processQueue.get() # blocking! (waits for new command to start up again, prevents repeatedly calling clear)
             displayMode = processMessage
-
-        if displayMode == 'systemStart' :
-            textLineGroup = [["GAME", " ON "], ["!!!!", "FIGHT", "!!!!"]]
-            displayMode = 'countdownPrimed'
-
-        if displayMode == 'gameStart' :
-            textLineGroup = [["MAKE", "YOUR", "TIME"], ["GET ", "OVER", "HERE"], ["YOU ", " WILL", "PAY "]]
-            displayMode = 'countdownPrimed'
-
-        if displayMode == 'gameEnd' :
-            textLineGroup = [["GAME", "OVER"], ["YOUR", "SOUL", " IS ", "MINE"], ["WITH", "YOUR", "LIFE"]] 
-            displayMode = 'countdownPrimed'
             
-        if displayMode == 'countdownPrimed' :
+        if displayMode in displayTexts :
             clearDisplays(displayList)
             countDownLoop(displayList, sequenceLast)
-            runExplosion(displayList, textLineGroup)
+            runExplosion(displayList, displayTexts[displayMode])
             timeInterval = 0
             displayMode = 'waitForClock' # leave the display showing for a bit!
 
