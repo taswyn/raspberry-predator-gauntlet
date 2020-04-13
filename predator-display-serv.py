@@ -48,6 +48,82 @@ def clearDisplays(oledDisplays) :
         oledDisplay.fill(0)
         oledDisplay.show()
 
+def countDownLoop(oledDisplays, sequenceLast) :
+    # TODO convert this to a direct for loop instead of this
+    totalAdvances = 0
+    sequenceNow = 0
+    delayInterval = 2
+
+    while (totalAdvances / 9) < 1 :
+        for i, display in enumerate(oledDisplays):
+            runCountdown(display, i, sequenceNow, sequenceLast)
+        totalAdvances += 1
+        sequenceNow = totalAdvances % 9
+        # note that for running indefinitely, we'll need a way to zero totalAdvances to prevent overflow (hence not a for loop)
+        time.sleep(delayInterval)
+
+def runCountdown(oledDisplay, displayNumber, sequenceStep, sequenceLast) :
+
+    if sequenceStep < sequenceLast[displayNumber] :
+
+        imageFile = 'images/pred' + str(sequenceStep + 1) + '-' + str(displayNumber + 1) + '.bmp'
+
+        initialImage = Image.open(imageFile)
+        # we need to rotate these -90 degrees and make sure they're single bit
+        rotatedImage = initialImage.transpose(screenOrientation)
+        twoBitImage = rotatedImage.convert("1")
+
+        oledDisplay.image(twoBitImage)
+    else :
+        # blank the corresponding display if past screen's sequence limit
+        oledDisplay.fill(0)
+
+    oledDisplay.show()
+    return
+
+def runExplosion(oledDisplays, textLines) :
+    # note that each entry in textLines MUST have 4 characters TODO sanitize that
+
+    center = [math.floor(oledDisplays[0].width / 2), math.floor(oledDisplays[0].height / 2)]
+
+    oledImages = [Image.new('1', (oledDisplay.width, oledDisplay.height)) for oledDisplay in oledDisplays]
+
+    drawObjects = [ImageDraw.Draw(oledImage) for oledImage in oledImages]
+
+    # this starts to get a little less than perfectly performant
+    # consider using sprites/etc, or creating some random ones and then re-drawing with those
+    for i in range(1, 15, 2) :
+        for displayIndex, oledDisplay in enumerate(oledDisplays) :
+            plotPoints = []
+            for randomi in range (0, 30 * i * math.floor(i/1.5)) :
+                x = random.randrange(-6*i, 6*i) + center[0]
+                y = random.randrange(math.floor(-5*i), math.floor(5*i)) + center[1]
+                plotPoints.append((x,y)) 
+            
+            drawObjects[displayIndex].point(plotPoints, fill=1)
+
+            oledDisplay.image(oledImages[displayIndex])
+            oledDisplay.show()
+            
+        # not an issue on Pi3B, but this should help keep timing consistent on faster systems
+        time.sleep(.05)
+
+    fontSize = 100 - (len(textLines) * 20) # dynamically calculate based on number of rows
+    basicFont = ImageFont.truetype(font="/usr/share/fonts/truetype/dejavu/DejaVuSansMono-Bold.ttf", size=fontSize)
+
+    # have to rotate the letters to fit the screen orientation!
+    fontObject = ImageFont.TransposedFont(basicFont, orientation = screenOrientation)
+
+    # for now, don't call this with more than 3 lines of text
+    for i, textLine in enumerate(textLines) : 
+        for displayIndex, oledDisplay in enumerate(oledDisplays) :
+            (textWidth, textHeight) = fontObject.getsize(textLine[displayIndex])
+            drawObjects[displayIndex].text((center[0] + (oledDisplay.width / len(textLines)) * -1 * ((i + 1) - (len(textLines) + 1 ) / 2) - textWidth / 2, center[1] - textHeight / 2), textLine[displayIndex], font=fontObject, fill=0)
+            oledDisplay.image(oledImages[displayIndex])
+            oledDisplay.show()
+            time.sleep(.05)
+        time.sleep(1)
+
 def clockInterval(oledDisplays) :
     # run a single clock interval
     for oledDisplay in oledDisplays :
@@ -110,7 +186,32 @@ def displayMain(processQueue):
             processMessage = processQueue.get() # blocking! (waits for new command to start up again, prevents repeatedly calling clear)
             displayMode = processMessage
 
+        if displayMode == 'systemStart' :
+            textLines = ["GAME", " ON "]
+            displayMode = 'countdownPrimed'
+
+        if displayMode == 'gameStart' :
+            textLines = ["MAKE", "YOUR", "TIME"]
+            displayMode = 'countdownPrimed'
+
+        if displayMode == 'gameEnd' :
+            textLines = ["GAME", "OVER"]
+            displayMode = 'countdownPrimed'
+            
+        if displayMode == 'countdownPrimed' :
+            clearDisplays(displayList)
+            countDownLoop(displayList, sequenceLast)
+            runExplosion(displayList, textLines)
+            timeInterval = 0
+            displayMode = 'waitForClock' # leave the display showing for a bit!
+
+        if displayMode == 'waitForClock' and timeInterval > 100 :
+            # this does mean that if another command comes in, it will intercept before this, which is ok!
+            clearDisplays(displayList)
+            displayMode = 'clock'
+    print("done")
     clearDisplays(displayList) # display cleanup after dispatch loop
+    
 
 # primary process core loop (central communication dispatcher)
 if __name__=='__main__':
@@ -135,6 +236,7 @@ if __name__=='__main__':
                 command = message[0]
                 
         interProcessQueue.put(command) # send the finish command, can process first if necessary
+        displayProcess.join() # need to wait for it to finish!
 
 # should we run the display from here directly?
 # or should we create a lock and spawn a child process
