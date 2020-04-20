@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 """
 Requires the CircuitPython library: adafruit-circuitpython-ssd1306 module
 Requires Pillow (Python Imaging Library fork)
@@ -135,6 +137,36 @@ def runExplosion(oledDisplays, textLineGroup) :
             oledDisplay.show()
             time.sleep(.05)
         time.sleep(1)
+
+def runPureText(oledDisplays, textLineGroup) :
+    # note that each entry in textLines MUST have 4 characters TODO sanitize that
+    if len(textLineGroup) < 2 : 
+        textLines = textLineGroup[0] # otherwise randrange fails with 0,0
+    else :
+        textLines = textLineGroup[random.randrange(0,len(textLineGroup) -1)]
+
+    center = [math.floor(oledDisplays[0].width / 2), math.floor(oledDisplays[0].height / 2)]
+
+    oledImages = [Image.new('1', (oledDisplay.width, oledDisplay.height)) for oledDisplay in oledDisplays]
+
+    drawObjects = [ImageDraw.Draw(oledImage) for oledImage in oledImages]
+
+    fontSize = 95 - (len(textLines) * 15) # dynamically calculate based on number of rows
+    basicFont = ImageFont.truetype(font="/usr/share/fonts/truetype/dejavu/DejaVuSansMono-Bold.ttf", size=fontSize)
+
+    # have to rotate the letters to fit the screen orientation!
+    fontObject = ImageFont.TransposedFont(basicFont, orientation = screenOrientation)
+
+    # Might not be legible with more than 4 lines of text
+    for i, textLine in enumerate(textLines) : 
+        for displayIndex, oledDisplay in enumerate(oledDisplays) :
+            (textWidth, textHeight) = fontObject.getsize(textLine[displayIndex])
+            drawObjects[displayIndex].text((center[0] + (oledDisplay.width / len(textLines)) * -1 * ((i + 1) - (len(textLines) + 1 ) / 2) - textWidth / 2, center[1] - textHeight / 2), textLine[displayIndex], font=fontObject, fill=1)
+            oledDisplay.image(oledImages[displayIndex])
+            oledDisplay.show()
+            time.sleep(.05)
+        time.sleep(1)
+
 
 def clockInterval(oledDisplays) :
     # run a single clock interval
