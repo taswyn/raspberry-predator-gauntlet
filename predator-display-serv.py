@@ -167,7 +167,7 @@ def runPureText(oledDisplays, textLineGroup) :
             oledDisplay.image(oledImages[displayIndex])
             oledDisplay.show()
             time.sleep(.05)
-        time.sleep(3)
+        time.sleep(.5)
 
 
 def clockInterval(oledDisplays) :
@@ -260,6 +260,7 @@ def displayMain(processQueue):
         if displayMode == 'shutdownReleased' and shutdownLevel < 4 : 
             shutdownLevel = 0
             shutdowntimeInterval = 0
+            clearDisplays(displayList)
             displayMode = 'clock'
             shutDownMode = False
 
