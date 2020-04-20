@@ -6,7 +6,7 @@ python --version
 nano ~/.bashrc
 
 # add (uncommented) to the end of the file (insert at least one newline first):
-#alias python='/usr/bin/python3'
+#alias python='/usr/bin/python3.5'
 
 sudo apt-get install python3-smbus
 
@@ -21,10 +21,11 @@ sudo apt-get install python3-pip
 # are these necesarry?
 #sudo apt-get install build-essential python-dev
 
-pip3 install RPI.GPIO
+sudo pip3 install RPI.GPIO
 
 # let's install Pillow for imaging, because PIL is not maintained and apparently not fun!
-python -m pip install Pillow
+# sudo necessary to get global install
+sudo python3.5 -m pip install Pillow
 
 # Set the i2c core to run at 1MHz:
 sudo nano /boot/config.txt
@@ -44,10 +45,15 @@ sudo nano /boot/config.txt
 #dtoverlay=i2c-gpio,bus=3,i2c_gpio_delay_us=1,i2c_gpio_sda=17,i2c_gpio_scl=27
 
 # Let's use the Adafruit CircuitPython SSD1306 library!
-pip3 install adafruit-circuitpython-ssd1306
+sudo pip3 install adafruit-circuitpython-ssd1306
 
 # at some point reboot
 sudo shutdown -r now
 
 # check setup
 sudo i2cdetect -l
+
+# add last line before exit 0 to /etc/rc.local 
+sudo nano /etc/rc.local
+#/home/pi/raspberry-predator-gauntlet/predator-shutdown-button.py &
+#/home/pi/raspberry-predator-gauntlet/predator-sys-start.py &

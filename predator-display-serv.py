@@ -39,6 +39,8 @@ adafruit_blinka.microcontroller.bcm283x.pin.i2cPorts = (
 
 screenOrientation = Image.ROTATE_270
 
+localPath = '/home/pi/raspberry-predator-gauntlet/'
+
 # clear a specific display TODO collapse this and use clearDisplays instead
 def displayInit(oledDisplay):
     oledDisplay.fill(0)
@@ -70,7 +72,7 @@ def runCountdown(oledDisplay, displayNumber, sequenceStep, sequenceLast) :
 
     if sequenceStep < sequenceLast[displayNumber] :
 
-        imageFile = 'images/pred' + str(sequenceStep + 1) + '-' + str(displayNumber + 1) + '.bmp'
+        imageFile = localPath + 'images/pred' + str(sequenceStep + 1) + '-' + str(displayNumber + 1) + '.bmp'
 
         initialImage = Image.open(imageFile)
         # we need to rotate these -90 degrees and make sure they're single bit
@@ -174,7 +176,7 @@ def clockInterval(oledDisplays) :
     # run a single clock interval
     for oledDisplay in oledDisplays :
         if random.randrange(0,15) > 11 :
-            imageFile = 'images/pred-hex-' + '{:X}'.format(random.randrange(0, 15)) + '.bmp'
+            imageFile = localPath + 'images/pred-hex-' + '{:X}'.format(random.randrange(0, 15)) + '.bmp'
 
             initialImage = Image.open(imageFile)
             # we need to rotate these -90 degrees and make sure they're single bit
@@ -236,6 +238,7 @@ def displayMain(processQueue):
     shutDownMode = False
 
     while displayMode != 'finish' :
+        # TODO spawn all animations as non blocking sub processes that are caught on finish and continued from there but can be canceled out of for shutdown button use
 
         # central queue dispatch and timer
         time.sleep(0.1) # 1/10th of a second time slicing, in theory?
@@ -267,12 +270,12 @@ def displayMain(processQueue):
         if displayMode == 'shutdownPressed' :
             shutDownMode = True
 
-        if shutDownMode and shutdowntimeInterval > 9 and  shutdownLevel < 4 :
+        if shutDownMode and shutdowntimeInterval > 6 and  shutdownLevel < 4 :
             shuttingDown(displayList, shutdownLevel)
             shutdowntimeInterval = 0
             shutdownLevel += 1
 
-        if shutDownMode and shutdowntimeInterval > 9 and shutdownLevel > 3 :
+        if shutDownMode and shutdowntimeInterval > 6 and shutdownLevel > 3 :
             shutdowntimeInterval = 0
             shutdownLevel += 1
             displayMode = 'systemEnd'

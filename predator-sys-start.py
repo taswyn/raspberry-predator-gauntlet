@@ -26,6 +26,6 @@ while not successfullySent :
             raise thisError
         print('server not running')
         # try to start the server
-        pipeHolder = subprocess.Popen(['/usr/bin/python3.5', os.path.expanduser('~/raspberry-predator-gauntlet/predator-display-serv.py')])
+        pipeHolder = subprocess.Popen(['/usr/bin/python3.5', '/home/pi/raspberry-predator-gauntlet/predator-display-serv.py'])
         # wait for a little
         time.sleep(2)

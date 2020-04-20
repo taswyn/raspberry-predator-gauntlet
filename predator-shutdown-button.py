@@ -27,7 +27,7 @@ while True :
     successfullySent = False
     if not shutdownButton.value :
 
-        while not successfullySent :
+        while not successfullySent and not alreadyPressed :
             try : 
                 with Client(addressT) as connection :
                     connection.send(['shutdownPressed', None, 1])
@@ -37,7 +37,7 @@ while True :
                     raise thisError
                 print('server not running')
                 # try to start the server
-                pipeHolder = subprocess.Popen(['/usr/bin/python3.5', os.path.expanduser('~/raspberry-predator-gauntlet/predator-display-serv.py')])
+                pipeHolder = subprocess.Popen(['/usr/bin/python3.5', '/home/pi/raspberry-predator-gauntlet/predator-display-serv.py'])
                 # wait for a little
                 time.sleep(.5)
         alreadyPressed = True
