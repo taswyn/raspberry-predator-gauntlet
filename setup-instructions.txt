@@ -55,5 +55,6 @@ sudo i2cdetect -l
 
 # add last line before exit 0 to /etc/rc.local 
 sudo nano /etc/rc.local
-#/home/pi/raspberry-predator-gauntlet/predator-shutdown-button.py &
-#/home/pi/raspberry-predator-gauntlet/predator-sys-start.py &
+#export PYTHONPATH=${PYTHONPATH}:/usr/lib/python3.5/
+#export PATH="$PATH:/home/pi/raspberry-predator-gauntlet:/usr/lib/python35.zip:/usr/lib/python3.5:/usr/lib/python3.5/plat-arm-linux-gnueabihf:/usr/lib/python3.5/lib-dynload:/home/pi/.local/lib/python3.5/site-packages:/usr/$
+#python3.5 /home/pi/raspberry-predator-gauntlet/predator-boot-launch.py >> /home/pi/startuplogfile 2>&1  &
