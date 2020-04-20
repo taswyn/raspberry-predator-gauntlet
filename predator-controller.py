@@ -29,18 +29,22 @@ while not successfullySent :
         time.sleep(2)
 
 # what if the server stalls out?
-time.sleep(60)
+time.sleep(30)
 
 with Client(addressT) as connection :
     connection.send(['gameStart', None, 1])
 
-time.sleep(60)
+time.sleep(30)
 
 with Client(addressT) as connection :
     connection.send(['gameEnd', None, 1])
 
-time.sleep(60)
+time.sleep(30)
 
+with Client(addressT) as connection :
+    connection.send(['systemEnd', None, 1])
+
+time.sleep(30)
 
 with Client(addressT) as connection :
     connection.send(['finish', None, 1])
