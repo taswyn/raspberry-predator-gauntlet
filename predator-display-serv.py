@@ -25,6 +25,8 @@ import adafruit_ssd1306
 
 import busio
 
+import os
+
 # We need this for the pins, right now we're cheating and hard calling it.
 import adafruit_blinka.board.raspberrypi.raspi_40pin as pins
 
@@ -165,7 +167,7 @@ def runPureText(oledDisplays, textLineGroup) :
             oledDisplay.image(oledImages[displayIndex])
             oledDisplay.show()
             time.sleep(.05)
-        time.sleep(1)
+        time.sleep(3)
 
 
 def clockInterval(oledDisplays) :
@@ -182,6 +184,21 @@ def clockInterval(oledDisplays) :
             oledDisplay.image(twoBitImage)
             oledDisplay.show()
     return
+
+def shuttingDown(oledDisplays, shutdownLevel) :
+    # run a single clock interval
+    for i, oledDisplay in enumerate(oledDisplays) :
+        if i < shutdownLevel + 1 :
+            oledDisplay.fill(1)
+            oledDisplay.show()        
+        else :
+            oledDisplay.fill(0)
+            oledDisplay.show()        
+    return
+
+def shutDownNow() :
+    os.system("sudo poweroff")
+
 
 # secondary process core loop (runs the screen)
 def displayMain(processQueue):
@@ -210,14 +227,22 @@ def displayMain(processQueue):
     displayTexts = {
         'systemStart' : [["GAME", " ON "], ["!!!!", "FIGHT", "!!!!"]],
         'gameStart' : [["MAKE", "YOUR", "TIME"], ["GET ", "OVER", "HERE"], ["YOU ", " WILL", "PAY "]],
-        'gameEnd' : [["GAME", "OVER"], ["YOUR", "SOUL", " IS ", "MINE"], ["WITH", "YOUR", "LIFE"]]
+        'gameEnd' : [["GAME", "OVER"], ["YOUR", "SOUL", " IS ", "MINE"], ["WITH", "YOUR", "LIFE"]],
+        'systemEnd' : [['BYE ', ' BYE'], [' IT ', ' ENDS', 'NOW ']]
     }
+
+    shutdownLevel = 0
+    shutdowntimeInterval = 0
+    shutDownMode = False
 
     while displayMode != 'finish' :
 
         # central queue dispatch and timer
         time.sleep(0.1) # 1/10th of a second time slicing, in theory?
         timeInterval += 1 # safe to keep accumulating this past 10 when outside of clock mode
+        if displayMode == 'shutdownPressed' :
+            shutdowntimeInterval += 1
+
         try :
             processMessage = processQueue.get(False) # non blocking
             displayMode = processMessage
@@ -231,6 +256,27 @@ def displayMain(processQueue):
             clockInterval(displayList)
             timeInterval = 0
 
+        # if we've gone past this, no going back!
+        if displayMode == 'shutdownReleased' and shutdownLevel < 4 : 
+            shutdownLevel = 0
+            shutdowntimeInterval = 0
+            displayMode = 'clock'
+            shutDownMode = False
+
+        if displayMode == 'shutdownPressed' :
+            shutDownMode = True
+
+        if shutDownMode and shutdowntimeInterval > 9 and  shutdownLevel < 4 :
+            shuttingDown(displayList, shutdownLevel)
+            shutdowntimeInterval = 0
+            shutdownLevel += 1
+
+        if shutDownMode and shutdowntimeInterval > 9 and shutdownLevel > 3 :
+            shutdowntimeInterval = 0
+            shutdownLevel += 1
+            displayMode = 'systemEnd'
+
+
         if displayMode == 'clear' :
             clearDisplays(displayList)
             processMessage = processQueue.get() # blocking! (waits for new command to start up again, prevents repeatedly calling clear)
@@ -238,10 +284,15 @@ def displayMain(processQueue):
             
         if displayMode in displayTexts :
             clearDisplays(displayList)
-            countDownLoop(displayList, sequenceLast)
-            runExplosion(displayList, displayTexts[displayMode])
-            timeInterval = 0
-            displayMode = 'waitForClock' # leave the display showing for a bit!
+            if displayMode == 'systemEnd' :
+                runPureText(displayList, displayTexts[displayMode])
+                shutDownNow()
+                displayMode = 'finish'
+            else:
+                countDownLoop(displayList, sequenceLast)
+                runExplosion(displayList, displayTexts[displayMode])
+                timeInterval = 0
+                displayMode = 'waitForClock' # leave the display showing for a bit!
 
         if displayMode == 'waitForClock' and timeInterval > 100 :
             # this does mean that if another command comes in, it will intercept before this, which is ok!

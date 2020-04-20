@@ -42,7 +42,7 @@ with Client(addressT) as connection :
 time.sleep(30)
 
 with Client(addressT) as connection :
-    connection.send(['systemEnd', None, 1])
+    connection.send(['shutdownPressed', None, 1])
 
 time.sleep(30)
 
