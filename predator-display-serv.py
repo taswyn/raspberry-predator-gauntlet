@@ -234,7 +234,7 @@ def displayMain(processQueue):
     }
 
     shutdownLevel = 0
-    shutdowntimeInterval = 0
+    shutdowntTmeInterval = 0
     shutDownMode = False
 
     while displayMode != 'finish' :
@@ -243,8 +243,8 @@ def displayMain(processQueue):
         # central queue dispatch and timer
         time.sleep(0.1) # 1/10th of a second time slicing, in theory?
         timeInterval += 1 # safe to keep accumulating this past 10 when outside of clock mode
-        if displayMode == 'shutdownPressed' :
-            shutdowntimeInterval += 1
+        if shutDownMode :
+            shutdowntTmeInterval += 1
 
         try :
             processMessage = processQueue.get(False) # non blocking
@@ -260,26 +260,26 @@ def displayMain(processQueue):
             timeInterval = 0
 
         # if we've gone past this, no going back!
-        if displayMode == 'shutdownReleased' and shutdownLevel < 4 : 
+        if shutDownMode and ((displayMode == 'shutdownReleased' and shutdownLevel < 3) or (displayMode == 'shutdownReleased' and shutdowntTmeInterval < 6 and shutdownLevel < 4)) : 
             shutdownLevel = 0
-            shutdowntimeInterval = 0
+            shutdowntTmeInterval = 0
+            shutDownMode = False
             clearDisplays(displayList)
             displayMode = 'clock'
-            shutDownMode = False
 
-        if displayMode == 'shutdownPressed' :
+        if displayMode == 'shutdownPressed' and not shutDownMode :
+            shutdowntTmeInterval = 0
             shutDownMode = True
 
-        if shutDownMode and shutdowntimeInterval > 6 and  shutdownLevel < 4 :
+        if shutDownMode and shutdowntTmeInterval > 6 and  shutdownLevel < 4 :
             shuttingDown(displayList, shutdownLevel)
-            shutdowntimeInterval = 0
+            shutdowntTmeInterval = 0
             shutdownLevel += 1
 
-        if shutDownMode and shutdowntimeInterval > 6 and shutdownLevel > 3 :
-            shutdowntimeInterval = 0
+        if shutDownMode and shutdowntTmeInterval > 6 and shutdownLevel > 3 :
+            shutdowntTmeInterval = 0
             shutdownLevel += 1
             displayMode = 'systemEnd'
-
 
         if displayMode == 'clear' :
             clearDisplays(displayList)
