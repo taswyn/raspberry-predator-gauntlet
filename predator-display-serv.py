@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python3.5
 
 """
 Requires the CircuitPython library: adafruit-circuitpython-ssd1306 module
